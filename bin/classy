@@ -1,0 +1,102 @@
+#!/usr/bin/env ruby
+
+class Classy
+	files = ""
+	@newFile = ""
+	@txt = ""
+	formats = ["sass", "less", "scss"]
+
+	def self.throw_exception(error)
+		puts "\n***** EXCEPTION *****"
+		puts "\t"+error
+		puts "\n"
+		exit
+	end
+
+	def self.throw_message(message)
+		puts "\n"
+		puts "\t"+message
+	end
+
+	def self.prompt_user
+		# print "\nAre you sure you don't want to specify a file? (Enter path to file for 'YES' or simply press ENTER for 'NO': "
+		puts "\n\tYou must specify a '.scss' or '.less' file!\n\n"
+	end
+
+	def self.fetch_params
+		if ARGV.length == 0 then
+			Classy.prompt_user()
+		else
+			convert(files)	
+		end
+	end
+
+	def self.do_sass(file)
+		baseName = File.basename(file, '.scss')
+		baseDir = File.dirname(file)
+		@newFile = baseDir + "/" + baseName + ".less"
+
+		throw_message("About to process scss: "+@newFile)
+		#Convert mixins
+		@txt.gsub!(/@mixin /,'.')
+		# Convert includes
+		@txt.gsub!(/@include /, '.')
+		# Convert vars
+		@txt.gsub!(/\$(\w+)/, '@\1')
+		# Convert extends
+		@txt.gsub!(/@extend ([\w\-\.]+);/, '&:extend( \1 );')
+		@txt.gsub!(/ !default/, '')
+		#@txt.gsub(/#{([\^}]+)}/, '~\"\1\"')
+		@txt.gsub!(/~\"@(\w+)\"/, '@{\1}')
+		@txt.gsub!(/adjust-hue\(/, 'spin(')
+		
+	end
+
+	def self.do_less(file)
+		baseName = File.basename(file, '.less')
+		baseDir = File.dirname(file)
+		@newFile = baseDir + "/" + baseName + ".scss"
+
+		throw_message("About to process less: "+@newFile)
+		#Convert vars
+		@txt.gsub!(/@((?!media|include|charset|document|font-face|import|keyframes|page|supports)[a-zA-Z_]+)/, '$\1' )
+		@txt.gsub!(/(@include\W+)[.#]([^(;]*\()/, '\1\2')
+		# Convert to Mixin
+		@txt.gsub!(/\.([\w\-]*)\s*\((.*)\)\s*\{/, '@mixin \\1(\\2){' )
+		# Convert calls to mixin includes
+		@txt.gsub!(/\.([\w\-]*\(.*\)\s*;)/, '@include \1')
+		# Convert
+		@txt.gsub(/~"(.*)"/, '#{"\1"}')
+	end
+
+	def self.convert(files)
+		files = Array(files)
+
+		if files.size == 0 then
+			throw_exception("Can't find a file")
+		else
+			files.each do |file|
+				file = `readlink -f #{file}`.strip
+				@txt = `cat #{file}`
+
+				if File.extname(file) == '.scss' then
+					do_sass(file)
+				elsif File.extname(file) == '.less'
+					@txt = do_less(file)
+				else
+					throw_exception("File specified was not a supported file. Please make sure the file extension is supported by this tool.")	
+				end
+
+				begin
+					File.write(@newFile, @txt)
+					throw_message("Conversion from SASS to LESS was successful!")
+				rescue
+					$user = `echo $USER`
+					throw_exception($user.strip+" was not able to write the LESS file. Please check permissions and try again")
+				end
+			end	
+		end	
+	end
+
+	Classy.fetch_params()
+end

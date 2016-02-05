@@ -1,0 +1,14 @@
+Thanks for READING ME! :)
+
+#Creator: Qiydaar Pratt
+#Email: prattq@gmail.com
+
+*** Ruby Version 1.9.3 or greater must be installed prior to running script (check Ruby Version using "ruby -v")
+
+ex.
+
+`gem install classy`
+`require 'classy'` # Depends on implementation
+
+Example: "./sass2less" -- no file specified (will look for .scss files relative to directory)
+Example: "./sass2less ~/some-directory/some-other-directory/somefile.scss" -- file specified (will run the script for specified files only)
