@@ -10,5 +10,4 @@ ex.
 `gem install classy`
 `require 'classy'` # Depends on implementation
 
-Example: "./sass2less" -- no file specified (will look for .scss files relative to directory)
-Example: "./sass2less ~/some-directory/some-other-directory/somefile.scss" -- file specified (will run the script for specified files only)
+...TBC
